@@ -1,3 +1,12 @@
+function destroyCanvas (canvas: HTMLCanvasElement) {
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    return
+  }
+  ctx.clearRect(0, 0, 1, 1);
+}
 /** Replace the contents of a canvas with the given data */
 export function drawDataToCanvas(canvas: HTMLCanvasElement, data: ImageData) {
   const ctx = canvas.getContext('2d');
@@ -51,6 +60,7 @@ export async function canvasEncode(
   }
 
   if (!blob) throw Error('Encoding failed');
+  destroyCanvas(canvas)
   return blob;
 }
 
@@ -102,7 +112,9 @@ export function drawableToImageData(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Could not create canvas context');
   ctx.drawImage(drawable, sx, sy, sw, sh, 0, 0, width, height);
-  return ctx.getImageData(0, 0, width, height);
+  const res = ctx.getImageData(0, 0, width, height);
+  destroyCanvas(canvas)
+  return res
 }
 
 export type BuiltinResizeMethod = 'pixelated' | 'low' | 'medium' | 'high';
@@ -135,7 +147,9 @@ export function builtinResize(
   }
 
   ctx.drawImage(canvasSource, sx, sy, sw, sh, 0, 0, dw, dh);
-  return ctx.getImageData(0, 0, dw, dh);
+  const res = ctx.getImageData(0, 0, dw, dh);
+  [canvasSource, canvasDest].forEach(destroyCanvas)
+  return res
 }
 
 /**
